@@ -79,7 +79,7 @@ function global:get-RenwebData{
     end{}
 }
 
-function global:get-RenwebStudents{
+function global:get-RenwebStudent{
 
 
 <#
@@ -115,6 +115,8 @@ function global:get-RenwebStudents{
             Get-RenWebstudents foo.server.name my_database username password "07","10"
 
             Gets the first, middle, and last name, email and address of each student in 7th or 10th Grade.
+
+
             .NOTES
 
             RenWeb uses 2 digit grade-level indicators which are alphanumeric.  So for example, 1st grade should be entered as 01.
@@ -154,8 +156,6 @@ function global:get-RenwebStudents{
             $Grades = $Grades[1..($Grades.Length-1)]
         }
 
-        Write-Host $Grades.Length
-        
         $Query = "SELECT dbo.Person.FirstName AS firstname,
                        dbo.Person.MiddleName AS middlename,
 	                   dbo.Person.LastName AS lastname,
