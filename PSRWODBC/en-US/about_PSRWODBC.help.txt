@@ -1,0 +1,17 @@
+PSTOPIC
+    about_PSRWODBC
+
+SHORT DESCRIPTION
+    PSRWODBC provides funtions for querying your school's RenWeb Database
+
+LONG DESCRIPTION
+    PSRWODBC provides funtions for querying your school's RenWeb Database.
+
+    Before you can do this, you will need to contact RenWeb to obtain ODBC access to your database.  Technical support can assist you with this process.  There is a fee involved.
+
+DETAILED DESCRIPTION
+    This is a basic module that provides a few functions for connecting to and querying the RenWeb database through an ODBC connection.
+
+RenWeb provides read-only access to your data through this connection, so this module only allows you to go one-way with the data.  In other words, you can retrieve data, but you cannot change or add data.
+
+This version of the module relies on the sqlps module.  This module requires Windows Powershell Extensions for SQL server 2016.  These are available at: https://www.microsoft.com/en-us/download/details.aspx?id=52676.  Specifically, the components required are: SQLSysClrTypes.msi, SharedManagementObjects.msi, and PowerShellTools.msi.
