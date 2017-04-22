@@ -1,4 +1,62 @@
-function global:get-RenwebData{
+. $PSScriptRoot\private\sqlcmd2.ps1
+
+function new-RWCredential{
+
+<#
+
+            .SYNOPSIS
+
+            Creates Crdential Xml file for use in connecting to RenWeb Database.
+
+ 
+
+            .DESCRIPTION
+
+            Creates the clixml file that can be used within the RWODBC module to connect to RenWeb.
+
+ 
+
+            .EXAMPLE
+
+            new-RWCredential "C:\scripts\resources\"
+
+            
+            Prompts for RenWeb ODBC username and password, and creates RWCred.xml in the directory C:\scripts\resources 
+
+ 
+
+            .NOTES
+
+            
+
+ 
+
+            .LINK
+
+            
+
+ 
+
+    #>
+
+
+    [CmdletBinding()]
+
+    param(
+            
+        [parameter(Mandatory=$true, Position=0, ValueFromPipeline=$False)]
+        [STRING]$path
+
+        
+    )   
+
+
+get-credential | Export-Clixml -Path "$path\RWCred.xml"
+
+}
+
+
+function get-RenwebData{
 
     <#
 
@@ -11,16 +69,11 @@ function global:get-RenwebData{
             .DESCRIPTION
 
             Connects to the RenWeb ODBC purchased access, and runs queries to gather data.  NOTE: RenWeb ODBC access is read-only - craft queries with this in mind!
-            Requires:
-                 Microsoft® System CLR Types for Microsoft SQL Server® 2016 (SQLSysClrTypes.msi)
-                 Microsoft® SQL Server® 2016 Shared Management Objects (SharedManagementObjects.msi)
-                 Microsoft® Windows PowerShell Extensions for Microsoft SQL Server® 2016 (PowerShellTools.msi)
-
- 
+             
 
             .EXAMPLE
 
-            Get-RenWebData foo.server.name my_database username password "SELECT my_db.dbo.Person.FirstName AS fname FROM dbo.Person INNER JOIN dbo.Person_Student ON dbo.Person.PersonID=dbo.Person_Student.StudentID WHERE dbo.Person_Student.GradeLevel='12'"
+            Get-RenWebData -Server "foo.server.com" -DataBaseName "BAR" -CredentialPath "C:\resources\" -Query "SELECT my_db.dbo.Person.FirstName AS fname FROM dbo.Person INNER JOIN dbo.Person_Student ON dbo.Person.PersonID=dbo.Person_Student.StudentID WHERE dbo.Person_Student.GradeLevel='12'"
 
  
 
@@ -51,35 +104,33 @@ function global:get-RenwebData{
         [STRING]$Server,
 
         [parameter(Mandatory=$true, Position=1, ValueFromPipeline=$False)]
-        [STRING]$UserName,
+        [STRING]$CredentialPath,
 
         [parameter(Mandatory=$true, Position=2, ValueFromPipeline=$False)]
-        [STRING]$Password,
-
-        [parameter(Mandatory=$true, Position=3, ValueFromPipeline=$False)]
         [STRING]$DataBaseName,
 
-        [parameter(Mandatory=$true, Position=4, ValueFromPipeline=$True)]
+        [parameter(Mandatory=$true, Position=3, ValueFromPipeline=$False)]
         [STRING]$Query
     )   
 
     Begin{
-
-        import-module sqlps
+     
+     $credpath = "$CredentialPath" + "RWCred.xml"
+     $mycreds = import-clixml "$credpath"   
 
     }
 
     Process {
 
         
-        Invoke-Sqlcmd -ServerInstance $Server -Database $DatabaseName -Username $UserName -Password $Password -Query $Query
+        Invoke-Sqlcmd2 -ServerInstance $Server -Database $DatabaseName -Credential $mycreds -Query $Query
 
     }
 
     end{}
 }
 
-function global:get-RenwebStudent{
+function get-RenwebStudent{
 
 
 <#
@@ -93,17 +144,12 @@ function global:get-RenwebStudent{
             .DESCRIPTION
 
             Connects to the RenWeb ODBC purchased access, and queries the databse to get student information based on grade level.  NOTE: RenWeb ODBC access is read-only - craft queries with this in mind!
-            Requires:
-                 Microsoft® System CLR Types for Microsoft SQL Server® 2016 (SQLSysClrTypes.msi)
-                 Microsoft® SQL Server® 2016 Shared Management Objects (SharedManagementObjects.msi)
-                 Microsoft® Windows PowerShell Extensions for Microsoft SQL Server® 2016 (PowerShellTools.msi)
-
- 
+            
 
             .EXAMPLE
 
 
-            Get-RenWebstudents foo.server.name my_database username password 07
+            Get-RenWebstudents -Server "foo.server.com" -DataBaseName "BAR" -CredentialPath "C:\resources\" -Grades "07"
 
  
             Gets the first, middle, and last name, email and address of each student in 7th Grade.
@@ -112,7 +158,7 @@ function global:get-RenwebStudent{
             .EXAMPLE
 
 
-            Get-RenWebstudents foo.server.name my_database username password "07","10"
+            Get-RenWebstudents -Server "foo.server.com" -DataBaseName "BAR" -CredentialPath "C:\resources\" -Grades "07"
 
             Gets the first, middle, and last name, email and address of each student in 7th or 10th Grade.
 
@@ -133,22 +179,20 @@ function global:get-RenwebStudent{
         [STRING]$Server,
 
         [parameter(Mandatory=$true, Position=1, ValueFromPipeline=$False)]
-        [STRING]$UserName,
+        [STRING]$CredentialPath,
 
         [parameter(Mandatory=$true, Position=2, ValueFromPipeline=$False)]
-        [STRING]$Password,
-
-        [parameter(Mandatory=$true, Position=3, ValueFromPipeline=$False)]
         [STRING]$DataBaseName,
 
-        [parameter(Mandatory=$true, Position=4, ValueFromPipeline=$False)]
+        [parameter(Mandatory=$true, Position=3, ValueFromPipeline=$False)]
         [STRING[]]$Grades
     )   
 
     Begin{
         
              
-        import-module sqlps
+        $credpath = "$CredentialPath" + "RWCred.xml"
+     $mycreds = import-clixml "$credpath" 
 
         $InitGrade = $Grades[0]
 
@@ -183,7 +227,7 @@ function global:get-RenwebStudent{
     Process {
 
         
-        Invoke-Sqlcmd -ServerInstance $Server -Database $DataBaseName -Username $UserName -Password $Password -Query $Query
+        Invoke-Sqlcmd2 -ServerInstance $Server -Database $DatabaseName -Credential $mycreds -Query $Query
 
     }
 
@@ -199,4 +243,5 @@ function global:get-RenwebStudent{
 
 
 Export-ModuleMember -Function get-RenwebData
-Export-ModuleMember -Function get-RenwebStudents
+Export-ModuleMember -Function get-RenwebStudent
+Export-ModuleMember -Function new-RWCredential

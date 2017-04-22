@@ -5,13 +5,19 @@ PSRWODBC is a powershell module that assits in queries to the ODBC provided by R
 ## Code Example
 
 ```
-get-RenwebStudent -Server foo -DataBaseName bar -UserName User -Password pass -Grades "07"
+new-RWCred "C:\resources\"
+```
+
+Prompts for RW ODBC username and password (supplied by Renweb) and creates the xml file for later logins.  This command must be run once for on each computer the module will be used on.
+
+```
+get-RenwebStudent -Server foo -DataBaseName bar -CredentialPath "c:\resources\" -Grades "07"
 ```
  
 Gets the first, middle, and last name, email and address of each student in 7th Grade.
 
 ```
-get-RenwebStudent -Server foo -DataBaseName bar -UserName User -Password pass -Query "SELECT my_db.dbo.Person.FirstName AS fname
+get-RenwebStudent -Server foo -DataBaseName bar -CredentialPath "c:\resources\" -Query "SELECT my_db.dbo.Person.FirstName AS fname
 FROM dbo.Person 
 INNER JOIN dbo.Person_Student 
 ON dbo.Person.PersonID=dbo.Person_Student.StudentID 
